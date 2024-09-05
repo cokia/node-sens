@@ -30,7 +30,7 @@ export class NCPClient {
     this.secretKey = secretKey;
     this.accessKey = accessKey;
     this.url = `https://sens.apigw.ntruss.com/sms/v2/services/${this.serviceId}/messages`;
-    this.method = 'POST';
+    this.method = "POST";
   }
 
   /**
@@ -39,7 +39,9 @@ export class NCPClient {
    *
    * @param to 수신 전화번호
    * @param content 전달할 내용
+   * @param subject? LMS일 경우 제목 (optional)
    * @param countryCode 국가 코드 (default 82)
+   * @param type 메시지 타입 (SMS|LMS) (default SMS)
    *
    * @returns Promise with success(boolean), msg(string), status(number)
    *
@@ -47,28 +49,31 @@ export class NCPClient {
   public async sendSMS({
     to,
     content,
-    countryCode = '82'
+    subject,
+    countryCode = "82",
+    type = "SMS",
   }: sendSMSType): Promise<sendSMSReturnType> {
     try {
-      const {timestamp, signature} = this.prepareSignature()
+      const { timestamp, signature } = this.prepareSignature();
       const response = await axios({
-        method: 'POST',
+        method: "POST",
         url: this.url,
         headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          'x-ncp-iam-access-key': this.accessKey,
-          'x-ncp-apigw-timestamp': timestamp,
-          'x-ncp-apigw-signature-v2': signature,
+          "Content-Type": "application/json; charset=utf-8",
+          "x-ncp-iam-access-key": this.accessKey,
+          "x-ncp-apigw-timestamp": timestamp,
+          "x-ncp-apigw-signature-v2": signature,
         },
         data: {
-          type: 'SMS',
-          contentType: 'COMM',
+          type: type,
+          contentType: "COMM",
           countryCode,
           from: this.phoneNumber,
           content,
           messages: [
             {
               to: `${to}`,
+              subject: subject ? subject : undefined,
             },
           ],
         },
@@ -90,7 +95,7 @@ export class NCPClient {
     } catch (error) {
       return {
         success: false,
-        msg: error.response.statusText || 'Internal Server Error',
+        msg: error.response.statusText || "Internal Server Error",
         status: error.response.status || 500,
       };
     }
@@ -103,10 +108,10 @@ export class NCPClient {
    * @returns timestamp(string), signature(string)
    */
   private prepareSignature(): prepareSignatureReturnType {
-    const space = ' ';
-    const newLine = '\n';
+    const space = " ";
+    const newLine = "\n";
     const message = [];
-    const hmac = crypto.createHmac('sha256', this.secretKey);
+    const hmac = crypto.createHmac("sha256", this.secretKey);
     const url2 = `/sms/v2/services/${this.serviceId}/messages`;
     const timestamp = Date.now().toString();
 
@@ -120,7 +125,7 @@ export class NCPClient {
 
     return {
       timestamp,
-      signature: hmac.update(message.join('')).digest('base64')
+      signature: hmac.update(message.join("")).digest("base64"),
     };
   }
 }

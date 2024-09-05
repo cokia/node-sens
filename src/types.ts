@@ -8,7 +8,9 @@ export type NCPClientOptions = {
 export type sendSMSType = {
   to: string;
   content: string;
+  subject?: string;
   countryCode?: string;
+  type?: "SMS" | "LMS";
 };
 
 export type sendSMSReturnType = {
